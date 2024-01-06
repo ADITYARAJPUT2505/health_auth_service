@@ -1,7 +1,7 @@
 const { User } = require("../models/index");
 //const user = require("../models/user");
 
-class UserRepo {
+class UserRepository {
   async create(data) {
     try {
       const user = await User.create(data);
@@ -51,4 +51,4 @@ class UserRepo {
   }
 }
 
-module.exports = UserRepo;
+module.exports = UserRepository;

@@ -1,15 +1,16 @@
-const UserRepo = require("../repository/user-repo");
+const UserRepository = require("../repository/user-repo");
 const jwt = require("jsonwebtoken");
 const { JWT_KEY } = require("../config/ServerConfig");
 const bcrypt = require("bcrypt");
+const { response } = require("express");
 class UserService {
   constructor() {
-    this.userRepo = new UserRepo();
+    this.userRepository = new UserRepository();
   }
 
   async create(data) {
     try {
-      const user = await this.userRepo.create(data);
+      const user = await this.userRepository.create(data);
       return user;
     } catch (error) {
       console.log("something went wrong in service layer");
@@ -20,7 +21,7 @@ class UserService {
   async signIn(email, plainPassword) {
     try {
       //step 1 ->fetch the user using the email
-      const user = await this.userRepo.getByEmail(email);
+      const user = await this.userRepository.getByEmail(email);
       //step 2 -> compare incoming plain password with stores encrypted password
       const passwordMatch = this.checkPassword(plainPassword, user.password);
       if (!passwordMatch) {
@@ -57,6 +58,22 @@ class UserService {
   checkPassword(userInputPlainPassword, encryptedPassword) {
     try {
       return bcrypt.compareSync(userInputPlainPassword, encryptedPassword);
+    } catch (error) {
+      console.log("something went wrong in password comparision");
+      throw error;
+    }
+  }
+  async isAuthenticated(token) {
+    try {
+      const isTokenVerfied = this.verifyToken(token);
+      if (!isTokenVerfied) {
+        throw { error: "invalid token" };
+      }
+      const user = await this.userRepository.getById(response.id);
+      if (!user) {
+        throw { error: "no user with the corresponding token exist" };
+      }
+      return user.id;
     } catch (error) {
       console.log("something went wrong in password comparision");
       throw error;
